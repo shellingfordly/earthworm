@@ -7,20 +7,20 @@
       ref="dialogBoxRef"
       class="modal-box"
     >
-      <h3 class="font-bold text-lg">{{ title }}</h3>
+      <h3 class="text-lg font-bold">{{ title }}</h3>
       <p class="py-4">{{ content }}</p>
       <div class="modal-action">
         <form method="dialog">
           <button
             @click="handleCancel"
-            class="btn cancel"
+            class="cancel btn"
           >
             {{ cancelBtnText }}
           </button>
         </form>
         <button
           v-if="confirmBtnText"
-          class="btn confirm"
+          class="confirm btn"
           @click="handleConfirm"
         >
           {{ confirmBtnText }}
@@ -31,22 +31,18 @@
 </template>
 
 <script setup lang="ts">
-import {
-  useMessageBoxModal,
-  type EmitsType,
-  type IMessageBoxProps,
-} from "~/composables/messageBox/modal";
+import type { EmitsType, IMessageBoxProps } from "~/composables/messageBox/modal";
+import { useMessageBoxModal } from "~/composables/messageBox/modal";
 
 const props = withDefaults(defineProps<IMessageBoxProps>(), {
   isShowModal: false,
-  title: "Tips",
-  content: "Are you sure?",
-  confirmBtnText: "Confirm",
-  cancelBtnText: "Cancel",
+  title: "提示",
+  content: "你确定吗?",
+  confirmBtnText: "确定",
+  cancelBtnText: "取消",
 });
 
 const emits = defineEmits<EmitsType>();
 
-const { dialogBoxRef, isShow, handleConfirm, handleCancel } =
-  useMessageBoxModal(props, emits);
+const { dialogBoxRef, isShow, handleConfirm, handleCancel } = useMessageBoxModal(props, emits);
 </script>

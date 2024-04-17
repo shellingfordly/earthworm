@@ -1,12 +1,12 @@
 {
   "version": "5",
-  "dialect": "mysql",
+  "dialect": "pg",
   "entries": [
     {
       "idx": 0,
       "version": "5",
-      "when": 1711263843044,
-      "tag": "0000_calm_thunderbolt_ross",
+      "when": 1713200309585,
+      "tag": "0000_powerful_hammerhead",
       "breakpoints": true
     }
   ]

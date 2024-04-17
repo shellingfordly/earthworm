@@ -1,11 +1,14 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { fetchStartGame } from "~/api/game";
 import { useActiveCourseId } from "~/composables/courses/activeCourse";
+import { isAuthenticated } from "~/services/auth";
 import { useGameStore } from "../game";
 import { useUserStore } from "../user";
 
 vi.mock("~/api/game");
+vi.mock("~/services/auth");
 
 describe("game store", () => {
   beforeEach(() => {
@@ -16,24 +19,19 @@ describe("game store", () => {
   });
 
   it("should return courseId 1 for visitors", async () => {
+    vi.mocked(isAuthenticated).mockReturnValue(false);
+
     const gameStore = useGameStore();
     const result = await gameStore.startGame();
 
     expect(result).toEqual({ courseId: 1 });
   });
 
-  describe("logged-in users", () => {
+  describe("signed in", () => {
     beforeEach(() => {
-      const userStore = useUserStore();
-      userStore.initUser({
-        userId: "1",
-        username: "cxr",
-        phone: "18518518521",
-      });
+      vi.mocked(isAuthenticated).mockReturnValue(true);
 
-      vi.mocked(fetchStartGame).mockImplementation(() =>
-        Promise.resolve({ cId: 2 })
-      );
+      vi.mocked(fetchStartGame).mockImplementation(() => Promise.resolve({ cId: 2 }));
     });
 
     it("should return cached courseId", async () => {

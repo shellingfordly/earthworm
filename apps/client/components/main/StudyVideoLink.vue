@@ -1,7 +1,7 @@
 <template>
   <NuxtLink
     v-if="noteLink"
-    class="tooltip text-xl cursor-pointer fill-current hover:text-[#d946ef] z-50"
+    class="tooltip z-50 cursor-pointer fill-current text-xl hover:text-[#d946ef]"
     :data-tip="NOTE_TIP"
     :href="noteLink"
     target="_blank"
@@ -21,16 +21,17 @@
 
 <script setup lang="ts">
 import { computed, withDefaults } from "vue";
+
 import { getCourseLink } from "~/utils/courseLinks";
 
-const NOTE_TIP = "边学边练：点击跳转至星荣英语笔记";
+const NOTE_TIP = "边学边练：看星荣零基础学英语视频";
 const props = withDefaults(
   defineProps<{
     courseId?: number;
   }>(),
   {
     courseId: 1,
-  }
+  },
 );
 
 const noteLink = computed(() => getCourseLink(props.courseId - 1));

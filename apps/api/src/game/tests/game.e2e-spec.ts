@@ -1,20 +1,18 @@
-import { course, user, userProgress } from '@earthworm/schema';
-import { INestApplication } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
-import * as argon2 from 'argon2';
-import * as request from 'supertest';
-import { createFirstCourse } from '../../../test/fixture/course';
-import { createUser } from '../../../test/fixture/user';
-import { cleanDB, signup } from '../../../test/helper/utils';
-import { AppModule } from '../../app/app.module';
-import { appGlobalMiddleware } from '../../app/useGlobal';
-import { endDB } from '../../common/db';
-import { DB, DbType } from '../../global/providers/db.provider';
+import { INestApplication } from "@nestjs/common";
+import { Test, TestingModule } from "@nestjs/testing";
+import * as request from "supertest";
 
-const userData = createUser();
-const password = '123456';
+import { course, userProgress } from "@earthworm/schema";
+import { createFirstCourse } from "../../../test/fixture/course";
+import { getTokenOwner } from "../../../test/fixture/user";
+import { cleanDB, signin } from "../../../test/helper/utils";
+import { AppModule } from "../../app/app.module";
+import { appGlobalMiddleware } from "../../app/useGlobal";
+import { endDB } from "../../common/db";
+import { DB, DbType } from "../../global/providers/db.provider";
+
 const firstCourse = createFirstCourse();
-describe('game e2e', () => {
+describe("game e2e", () => {
   let app: INestApplication;
   let db: DbType;
 
@@ -39,33 +37,27 @@ describe('game e2e', () => {
     await app.close();
   });
 
-  it('should start game', async () => {
-    const { token } = await signup(app);
+  it("should start game", async () => {
+    const token = await signin();
 
     await request(app.getHttpServer())
-      .post('/game/start')
-      .set('Authorization', `Bearer ${token}`)
+      .post("/game/start")
+      .set("Authorization", `Bearer ${token}`)
       .expect(201)
       .expect(({ body }) => {
-        expect(body.cId).toBe(1);
+        expect(body.cId).toBe(2);
       });
   });
 
-  it('should not start game if not logged in', async () => {
-    await request(app.getHttpServer()).post('/game/start').expect(401);
+  it("should not start game if not logged in", async () => {
+    await request(app.getHttpServer()).post("/game/start").expect(401);
   });
 });
 
 async function setupDBData(db: DbType) {
-  const [res] = await db.insert(user).values({
-    name: userData.username,
-    phone: userData.phone,
-    password: await argon2.hash(password),
-  });
-
   await db.insert(userProgress).values({
-    courseId: 1,
-    userId: res.insertId,
+    courseId: 2,
+    userId: getTokenOwner(),
   });
 
   await db.insert(course).values(firstCourse);

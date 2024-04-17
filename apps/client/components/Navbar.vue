@@ -1,23 +1,21 @@
 <template>
   <header
     :class="isStickyNavBar"
-    class="w-full top-0 bg-opacity-50 backdrop-blur-xl font-customFont z-40"
+    class="top-0 z-40 w-full bg-opacity-50 font-customFont backdrop-blur-xl"
   >
     <div class="mx-auto max-w-screen-xl px-6">
       <div class="flex h-16 items-center justify-between">
-        <div class="left flex w-full items-center justify-between">
+        <div class="flex flex-1 items-center justify-between">
           <NuxtLink to="/">
             <div class="logo flex items-center">
               <img
                 width="48"
                 height="48"
-                class="rounded-md overflow-hidden mr-6 hidden min-[800px]:block"
+                class="mr-6 hidden overflow-hidden rounded-md min-[800px]:block"
                 src="/logo.png"
                 alt="earth-worm-logo"
               />
-              <h1
-                class="text-2xl font-extrabold leading-normal text-wrap dark:text-white"
-              >
+              <h1 class="text-wrap text-2xl font-extrabold leading-normal dark:text-white">
                 Earthworm
               </h1>
             </div>
@@ -28,14 +26,14 @@
             aria-label="Global"
             class="hidden md:block"
           >
-            <ul class="flex items-center text-md">
+            <ul class="flex items-center text-base">
               <template
                 v-for="(optItem, optIndex) in HEADER_OPTIONS"
                 :key="optIndex"
               >
                 <li class="px-4">
                   <a
-                    class="text-nowrap dark:text-white hover:text-purple-600 dark:hover:text-purple-400"
+                    class="text-nowrap hover:text-purple-600 dark:text-white dark:hover:text-purple-400"
                     :href="`#${optItem.anchor}`"
                   >
                     {{ optItem.name }}
@@ -46,10 +44,31 @@
           </nav>
         </div>
 
-        <div class="login-out flex items-center">
+        <div class="flex items-center">
+          <!-- 显示用户信息 -->
+          <div
+            v-if="isAuthenticated()"
+            class="logged-in flex items-center"
+          >
+            <div class="font-500 mx-2 max-w-[4em] truncate min-[500px]:max-w-[6em]">
+              {{ userStore.userNameGetter }}
+            </div>
+            <DropMenu @update-show-modal="handleLogout" />
+          </div>
+
+          <!-- 登录/注册 -->
+          <button
+            v-else
+            @click="signIn()"
+            aria-label="Login"
+            class="btn btn-ghost btn-sm mx-1 h-8 rounded-md px-4 text-base font-normal dark:text-white"
+          >
+            <span class="relative">登录</span>
+          </button>
+
           <!-- 切换主题 -->
           <button
-            class="btn btn-sm btn-ghost rounded-md mx-1 w-8 h-8 p-0"
+            class="btn btn-ghost btn-sm mx-1 h-8 w-8 rounded-md p-0"
             @click="toggleDarkMode"
           >
             <svg
@@ -71,7 +90,7 @@
               viewBox="0 0 24 24"
               stroke-width="1.5"
               stroke="currentColor"
-              class="w-6 h-6"
+              class="h-6 w-6"
             >
               <path
                 stroke-linecap="round"
@@ -80,39 +99,6 @@
               />
             </svg>
           </button>
-
-          <!-- 显示用户信息 -->
-          <div
-            v-if="userStore.user"
-            class="logged-in flex items-center"
-          >
-            <div
-              class="mx-2 font-500 truncate min-[500px]:max-w-[6em] max-w-[4em]"
-            >
-              {{ userStore.user.username }}
-            </div>
-            <DropMenu @update-show-modal="handleLogout" />
-          </div>
-
-          <!-- 登录/注册 -->
-          <div
-            v-else
-            class="flex items-center ml-5"
-          >
-            <button
-              v-show="
-                (!userStore.user && route.name !== 'Auth-Login') ||
-                route.name === 'Auth-Login'
-              "
-              @click="
-                route.name === 'Auth-Login' ? handleSignup() : handleLogin()
-              "
-              aria-label="route.name === 'Auth-Login' ? 'Register' : 'Login'"
-              class="rounded-md px-5 py-2.5 text-sm font-medium text-white shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 hover:bg-purple-600 focus:ring-purple-700 bg-purple-500"
-            >
-              {{ route.name === "Auth-Login" ? "Register" : "Login" }}
-            </button>
-          </div>
         </div>
       </div>
     </div>
@@ -121,19 +107,17 @@
     v-model:isShowModal="isShowModal"
     title="提示"
     content="是否确认退出登录？"
-    @confirm="handleLogoutConfirm"
+    @confirm="signOut()"
   />
 </template>
 
 <script setup lang="ts">
-import { navigateTo } from "nuxt/app";
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import { Theme, useDarkMode } from "~/composables/darkMode";
-import { useUserStore } from "~/store/user";
-import { cleanToken } from "~/utils/token";
 
-import Message from "~/components/main/Message/useMessage";
+import { Theme, useDarkMode } from "~/composables/darkMode";
+import { isAuthenticated, signIn, signOut } from "~/services/auth";
+import { useUserStore } from "~/store/user";
 
 const route = useRoute();
 const userStore = useUserStore();
@@ -156,30 +140,7 @@ const isStickyNavBar = computed(() => {
   return "";
 });
 
-const handleLogin = () => {
-  navigateTo("/auth/login");
-};
-
-const handleSignup = () => {
-  navigateTo("/auth/signup");
-};
-
 const handleLogout = () => {
   isShowModal.value = true;
-};
-
-const handleLogoutConfirm = () => {
-  userStore.logoutUser();
-  cleanToken();
-  try {
-    Message.success("您已成功退出登录！", {
-      duration: 2000,
-      onLeave() {
-        navigateTo("/");
-      },
-    });
-  } catch (error) {
-    Message.error("退出登录失败！");
-  }
 };
 </script>
