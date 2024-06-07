@@ -28,14 +28,14 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: "earthworm",
+      title: "Earthworm",
       link: [{ rel: "icon", type: "image/x-icon", href: "/logo.png" }],
       script: appScripts,
     },
   },
   css: ["~/assets/css/globals.css"],
   modules: ["@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxt/image", "@nuxt/test-utils/module"],
-  plugins: ["~/plugins/logto.ts"],
+  plugins: ["~/plugins/logto.ts", "~/plugins/lazyTippy.ts"],
   runtimeConfig: {
     public: {
       endpoint: process.env.LOGTO_ENDPOINT || "",
@@ -43,6 +43,7 @@ export default defineNuxtConfig({
       backendEndpoint: process.env.BACKEND_ENDPOINT || "",
       signInRedirectURI: process.env.LOGTO_SIGN_IN_REDIRECT_URI || "",
       signOutRedirectURI: process.env.LOGTO_SIGN_OUT_REDIRECT_URI || "",
+      helpDocsURL: process.env.HELP_DOCS_URL || "",
     },
   },
 });

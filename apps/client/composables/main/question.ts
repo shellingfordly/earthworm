@@ -32,6 +32,10 @@ export function clearQuestionInput() {
   inputValue.value = "";
 }
 
+export function isWord(content: string) {
+  return /[a-zA-Z0-9]/.test(content);
+}
+
 export function useInput({
   source,
   setInputCursorPosition,
@@ -71,14 +75,16 @@ export function useInput({
       resetUserInputWords();
 
       const english = source();
-      english
-        .split(separator)
-        .map(createWord)
-        .forEach((word, i) => {
-          userInputWords[i] = word;
-          // 首个单词自动聚焦
-          i === 0 && (userInputWords[0].isActive = true);
-        });
+
+      let inputWordIndex = 0;
+      english.split(separator).forEach((text, index) => {
+        if (isWord(text)) {
+          const word = createWord(text, index);
+          userInputWords[inputWordIndex] = word;
+          inputWordIndex === 0 && (userInputWords[0].isActive = true);
+          inputWordIndex++;
+        }
+      });
     });
   }
 
@@ -131,9 +137,20 @@ export function useInput({
     return userInputWords.every((w) => !w.incorrect);
   }
 
+  function formatLastWordUserInput(word: Word, index: number) {
+    const isLastWord = userInputWords.length - 1 === index;
+    if (isLastWord) {
+      if (word.userInput.endsWith(".")) {
+        word.userInput = word.userInput.slice(0, -1);
+      }
+    }
+  }
+
   function markIncorrectWord() {
-    userInputWords.forEach((word) => {
+    userInputWords.forEach((word, index) => {
+      formatLastWordUserInput(word, index);
       const formattedWord = formatInputText(word.userInput);
+
       if (formattedWord !== word.text.toLocaleLowerCase()) {
         word.incorrect = true;
       } else {
@@ -343,6 +360,10 @@ export function useInput({
     return mode === Mode.Fix;
   }
 
+  function findWordById(id: number) {
+    return userInputWords.find((word) => word.id === id);
+  }
+
   return {
     inputValue,
     userInputWords,
@@ -354,5 +375,6 @@ export function useInput({
     fixFirstIncorrectWord,
     resetUserInputWords,
     isFixMode,
+    findWordById,
   };
 }

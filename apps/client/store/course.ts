@@ -1,43 +1,46 @@
 import { defineStore } from "pinia";
-import { computed, ref, watch, watchEffect } from "vue";
+import { computed, ref, watchEffect } from "vue";
 
-import { fetchCompleteCourse, fetchCourse, fetchTryCourse } from "~/api/course";
-import { useActiveCourseId } from "~/composables/courses/activeCourse";
-import { useCourseProgress } from "~/composables/courses/progress";
-import { isAuthenticated } from "~/services/auth";
+import type { CoursePack } from "./coursePack";
+import { fetchCompleteCourse, fetchCourse } from "~/api/course";
+import { useActiveCourseMap } from "~/composables/courses/activeCourse";
+import { useStatement } from "./statement";
 
-interface Statement {
-  id: number;
+export interface Statement {
+  id: string;
+  order: number;
   chinese: string;
   english: string;
   soundmark: string;
 }
 
+export interface CourseIdentifier {
+  coursePackId: CoursePack["id"];
+  courseId: Course["id"];
+}
+
 export interface Course {
-  id: number;
+  id: string;
   title: string;
+  description: string;
+  order: number;
   statements: Statement[];
-  count?: number;
+  coursePackId: CoursePack["id"];
+  completionCount: number;
+  statementIndex: number;
+  video: string;
 }
 
 export const useCourseStore = defineStore("course", () => {
   const currentCourse = ref<Course>();
-  const statementIndex = ref(0);
   const currentStatement = ref<Statement>();
+  const { statementIndex, setupStatement } = useStatement();
 
-  const { updateActiveCourseId } = useActiveCourseId();
-  const { saveProgress, loadProgress, cleanProgress } = useCourseProgress();
+  const { updateActiveCourseMap } = useActiveCourseMap();
 
   watchEffect(() => {
     currentStatement.value = currentCourse.value?.statements[statementIndex.value];
   });
-
-  watch(
-    () => statementIndex.value,
-    () => {
-      saveProgress(currentCourse.value?.id!, statementIndex.value);
-    },
-  );
 
   const words = computed(() => {
     return currentStatement.value?.english.split(" ") || [];
@@ -69,33 +72,19 @@ export const useCourseStore = defineStore("course", () => {
 
   function doAgain() {
     resetStatementIndex();
-    updateActiveCourseId(currentCourse.value?.id!);
+    updateActiveCourseMap(currentCourse.value?.coursePackId!, currentCourse.value?.id!);
   }
 
-  function checkCorrect(input: string) {
-    return input.toLocaleLowerCase() === currentStatement.value?.english.toLocaleLowerCase();
-  }
-
-  async function completeCourse(cId: number) {
-    const res = await fetchCompleteCourse(cId);
-    // 这里只改变缓存的原因是 statementIndex 和 UI 是绑定的
-    // 当完成课程的时候并不希望 UI 立刻被重置
-    saveProgress(currentCourse.value?.id!, 0);
+  async function completeCourse() {
+    const coursePackId = currentCourse.value?.coursePackId!;
+    const res = await fetchCompleteCourse(coursePackId, currentCourse.value?.id!);
     return res;
   }
 
-  async function setup(courseId: number) {
-    if (courseId === currentCourse.value?.id) return;
-
-    if (!isAuthenticated()) {
-      let course = await fetchTryCourse();
-      currentCourse.value = course;
-    } else {
-      let course = await fetchCourse(courseId);
-      currentCourse.value = course;
-    }
-
-    statementIndex.value = loadProgress(courseId);
+  async function setup(coursePackId: string, courseId: string) {
+    let course = await fetchCourse(coursePackId, courseId);
+    currentCourse.value = course;
+    setupStatement(currentCourse);
   }
 
   return {
@@ -107,9 +96,7 @@ export const useCourseStore = defineStore("course", () => {
     setup,
     doAgain,
     isAllDone,
-    checkCorrect,
     completeCourse,
-    cleanProgress,
     toSpecificStatement,
     toPreviousStatement,
     toNextStatement,

@@ -133,3 +133,7 @@ dist
 
 # MacOS .DS_Store file
 **/.DS_Store
+
+# docker volumes for dev
+.volumes
+cache

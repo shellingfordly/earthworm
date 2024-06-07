@@ -2,7 +2,7 @@
   "name": "earthworm",
   "version": "1.0.0",
   "description": "",
-  "packageManager": "pnpm@8.15.5",
+  "packageManager": "pnpm@9.1.1+sha256.9551e803dcb7a1839fdf5416153a844060c7bce013218ce823410532504ac10b",
   "main": "index.js",
   "scripts": {
     "prepare": "simple-git-hooks",
@@ -10,8 +10,8 @@
     "db:init": "pnpm schema:build && pnpm -F @earthworm/db run init",
     "db:init:test": "pnpm -F @earthworm/db run init:test",
     "db:init:test:ci": "pnpm -F @earthworm/db run init:ci",
+    "db:studio": "pnpm -F @earthworm/db db:studio",
     "db:upload": "pnpm -F @earthworm/xingrong-courses upload",
-    "db:update": "pnpm -F @earthworm/xingrong-courses upload:statements",
     "dev:serve": "pnpm schema:build && pnpm -F api start:dev",
     "dev:client": "pnpm -F client dev",
     "docker:start": "docker-compose up -d",
@@ -25,20 +25,23 @@
     "format-check": "prettier --check --cache .",
     "test": "pnpm -F api test && pnpm -F client test",
     "test:ci": "pnpm -F api test && pnpm -F client test:ci",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
+    "docs:dev": "pnpm -F docs docs:dev",
+    "build:docs": "pnpm -F docs docs:build"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=20.12.2"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
-    "@types/node": "^20.11.0",
+    "@types/node": "^20.12.7",
     "conventional-changelog-cli": "^4.1.0",
     "dotenv": "^16.3.1",
     "lint-staged": "^15.2.2",
+    "picocolors": "^1.0.1",
     "prettier": "^3.2.5",
     "prettier-plugin-tailwindcss": "0.5.13",
     "simple-git-hooks": "2.11.1",

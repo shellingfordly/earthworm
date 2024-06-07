@@ -6,14 +6,22 @@
         :key="i"
       >
         <div
+          v-if="isWord(w)"
           class="h-[4rem] rounded-[2px] border-b-2 border-solid text-[3em] leading-none transition-all"
           :class="getWordsClassNames(i)"
           :style="{ minWidth: `${inputWidth(w)}ch` }"
         >
-          {{ userInputWords[i]["userInput"] }}
+          {{ findWordById(i)!.userInput }}
+        </div>
+        <div
+          v-else
+          class="h-[4rem] rounded-[2px] text-[3em] leading-none transition-all"
+        >
+          {{ w }}
         </div>
       </template>
       <input
+        lang="en"
         ref="inputEl"
         class="absolute h-full w-full opacity-0"
         type="text"
@@ -28,6 +36,14 @@
         autoFocus
       />
     </div>
+    <div class="mt-12 flex items-center justify-center md:hidden">
+      <button
+        class="btn btn-outline btn-sm"
+        @click="handleSubmitAnswer"
+      >
+        提交
+      </button>
+    </div>
   </div>
 </template>
 
@@ -37,7 +53,7 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 import { courseTimer } from "~/composables/courses/courseTimer";
 import { useAnswerTip } from "~/composables/main/answerTip";
 import { useGameMode } from "~/composables/main/game";
-import { useInput } from "~/composables/main/question";
+import { isWord, useInput } from "~/composables/main/question";
 import { useSummary } from "~/composables/main/summary";
 import { useAutoNextQuestion } from "~/composables/user/autoNext";
 import { useErrorTip } from "~/composables/user/errorTip";
@@ -45,6 +61,7 @@ import { useKeyboardSound } from "~/composables/user/sound";
 import { useSpaceSubmitAnswer } from "~/composables/user/submitKey";
 import { useShowWordsWidth } from "~/composables/user/words";
 import { useCourseStore } from "~/store/course";
+import { isWindows } from "~/utils/platform";
 import { getWordWidth, useQuestionInput } from "./questionInputHelper";
 import { usePlayTipSound, useTypingSound } from "./useTypingSound";
 
@@ -63,7 +80,7 @@ const { handleAnswerError, resetCloseTip } = answerError();
 const { isAutoNextQuestion } = useAutoNextQuestion();
 const { isShowErrorTip } = useErrorTip();
 
-const { inputValue, userInputWords, submitAnswer, setInputValue, handleKeyboardInput, isFixMode } =
+const { findWordById, inputValue, submitAnswer, setInputValue, handleKeyboardInput, isFixMode } =
   useInput({
     source: () => courseStore.currentStatement?.english!,
     setInputCursorPosition,
@@ -109,8 +126,12 @@ function focusInputWhenWIndowFocus() {
   });
 }
 
+function handleSubmitAnswer() {
+  submitAnswer(handleAnswerRight, handleAnswerError);
+}
+
 function getWordsClassNames(index: number) {
-  const word = userInputWords[index];
+  const word = findWordById(index)!;
   // 当前单词激活 且 聚焦
   if (word.isActive && focusing.value) {
     return "text-fuchsia-500 border-b-fuchsia-500";
@@ -194,6 +215,14 @@ function handleCompositionEnd() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
+  // 给 windows 用户添加 ctrl + backspace 删除上一个单词的快捷键
+  // 有些浏览器 input 不支持通过 ctrl + backspace 删除 所以自行扩展下
+  if (e.code === "Backspace" && e.ctrlKey && isWindows()) {
+    e.preventDefault();
+    deletePreviousWordOnWin();
+    return;
+  }
+
   // 避免在某些中文输入法中，按下 Ctrl 键时，输入法会将当前的预输入字符上屏
   if (e.ctrlKey) {
     e.preventDefault();
@@ -213,6 +242,21 @@ function handleKeydown(e: KeyboardEvent) {
       errorCallback: handleAnswerError,
     },
   });
+}
+
+function deletePreviousWordOnWin() {
+  var start = inputEl.value!.selectionStart!;
+  var end = inputEl.value!.selectionEnd!;
+  if (end === 0) return;
+
+  // 删除光标前的所有连续空格
+  while (start > 0 && inputValue.value[start - 1] === " ") {
+    start--;
+  }
+  var valueToCursor = inputValue.value.substring(0, start);
+  var newEnd = valueToCursor.lastIndexOf(" ") + 1 || 0;
+  inputValue.value = inputValue.value.substring(0, newEnd);
+  inputEl.value!.setSelectionRange(newEnd, newEnd);
 }
 
 function preventCursorMove(event: MouseEvent) {

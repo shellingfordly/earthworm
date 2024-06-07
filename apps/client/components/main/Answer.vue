@@ -1,18 +1,17 @@
 <template>
   <div class="text-center">
-    <div class="ml-8 text-5xl text-fuchsia-500 dark:text-gray-50">
-      {{ courseStore.currentStatement?.english }}
-      <svg
-        class="ml-1 inline-block h-7 w-7 cursor-pointer fill-gray-500 hover:fill-fuchsia-500"
-        viewBox="0 0 1024 1024"
-        version="1.1"
-        xmlns="http://www.w3.org/2000/svg"
-        @click="handlePlaySound"
+    <div class="ml-8 inline-flex flex-wrap items-center justify-center gap-1 text-5xl">
+      <span
+        v-for="word in words"
+        :key="word"
+        class="cursor-pointer p-1 hover:text-fuchsia-500"
+        @click="handlePlayWordSound(word)"
+        >{{ word }}</span
       >
-        <path
-          d="M342.4 384H128v256h214.4L576 826.8V197.2L342.4 384zM64 320h256L640 64v896L320 704H64V320z m640 256h256v-64H704v64z m16.8 159.5l181 181 45.3-45.3-181-181-45.3 45.3z m33.9-343.9l181-181-45.3-45.3-181 181 45.3 45.3z"
-        ></path>
-      </svg>
+      <span
+        class="i-ph-speaker-simple-high ml-1 inline-block h-7 w-7 cursor-pointer text-gray-500 hover:text-fuchsia-500"
+        @click="handlePlayEnglishSound"
+      ></span>
     </div>
     <div class="my-6 text-xl text-gray-500">
       {{ courseStore.currentStatement?.soundmark }}
@@ -36,9 +35,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 
 import { useCurrentStatementEnglishSound } from "~/composables/main/englishSound";
+import { usePlayWordSound } from "~/composables/main/englishSound/audio";
 import { useGameMode } from "~/composables/main/game";
 import { useSummary } from "~/composables/main/summary";
 import { useAutoPronunciation } from "~/composables/user/sound";
@@ -46,10 +46,13 @@ import { useCourseStore } from "~/store/course";
 import { cancelShortcut, registerShortcut } from "~/utils/keyboardShortcuts";
 
 const courseStore = useCourseStore();
-const { handlePlaySound } = usePlayEnglishSound();
+const { handlePlayWordSound } = usePlayWordSound();
+const { handlePlayEnglishSound } = usePlayEnglishSound();
 const { showSummary } = useSummary();
 const { showQuestion } = useGameMode();
 const { isAutoPlaySound } = useAutoPronunciation();
+
+const words = computed(() => courseStore.currentStatement?.english.split(" "));
 
 registerShortcutKeyForNextQuestion();
 
@@ -62,12 +65,12 @@ function usePlayEnglishSound() {
     }
   });
 
-  function handlePlaySound() {
+  function handlePlayEnglishSound() {
     playSound();
   }
 
   return {
-    handlePlaySound,
+    handlePlayEnglishSound,
   };
 }
 

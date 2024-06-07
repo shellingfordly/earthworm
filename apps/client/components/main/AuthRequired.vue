@@ -1,8 +1,5 @@
 <template>
-  <dialog
-    className="modal top-[-8vh]"
-    :open="authRequireModalState"
-  >
+  <CommonModal :show-modal="authRequireModalState">
     <div className="modal-box">
       <h3 className="font-bold text-lg mb-4">✨ 友情提示</h3>
       <p class="py-4 text-center text-xl">注册以进行下一课的学习哦~ 😊</p>
@@ -21,7 +18,7 @@
         </button>
       </div>
     </div>
-  </dialog>
+  </CommonModal>
 </template>
 
 <script setup lang="ts">
@@ -38,7 +35,6 @@ function handleSignup() {
   hideAuthRequireModal();
   courseStore.resetStatementIndex();
   showQuestion();
-  // TODO 这里应该是基于后端接口来获取 下一课的 id
-  signIn("/main/2");
+  signIn();
 }
 </script>

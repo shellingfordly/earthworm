@@ -1,7 +1,7 @@
 <template>
   <div
-    :ref="isActiveCourse ? 'activeCourseRef' : undefined"
     class="course-card"
+    :ref="isActiveCourse ? 'activeCourseRef' : undefined"
     :class="{
       'state-finished': hasFinished,
       'current-card': isActiveCourse,
@@ -11,16 +11,17 @@
       {{ title }}
     </h3>
     <p class="mt-4 truncate text-sm text-gray-500 dark:text-gray-400">
-      {{ title }}的描述……（等你来写）
+      {{ description }}
     </p>
     <div
       v-if="hasFinished"
-      class="count tooltip"
-      :data-tip="dataTip"
+      class="count"
       :class="{
         'state-finished-count': hasFinished,
         'current-count': isActiveCourse,
       }"
+      :data-tippy-content="dataTip"
+      @mouseenter="$lazyTippy"
     >
       {{ count }}
     </div>
@@ -30,18 +31,20 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 
-import { useActiveCourseId } from "~/composables/courses/activeCourse";
+import { useActiveCourseMap } from "~/composables/courses/activeCourse";
 
 const props = defineProps<{
   title: string;
-  id: number;
+  id: string;
   count: number | undefined;
+  coursePackId: string;
+  description: string;
 }>();
-const { activeCourseId } = useActiveCourseId();
+const { activeCourseMap } = useActiveCourseMap();
 
 const activeCourseRef = ref<HTMLDivElement>();
 const hasFinished = computed(() => !!props.count);
-const isActiveCourse = computed(() => activeCourseId.value == props.id);
+const isActiveCourse = computed(() => activeCourseMap.value[props.coursePackId] == props.id);
 const dataTip = computed(() => `恭喜您，当前课程已完成 ${props.count} 次 🎉`);
 
 onMounted(() => {

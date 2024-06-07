@@ -5,15 +5,17 @@
   "main": "src/index.ts",
   "scripts": {
     "init:ci": "tsx src/migrate.ts",
-    "init:test": "drizzle-kit push:pg --config=drizzle.config.test.ts",
-    "init": "drizzle-kit push:pg",
-    "generate": "drizzle-kit generate:pg"
+    "init:test": "drizzle-kit push --config=drizzle.config.test.ts",
+    "init": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "generate": "drizzle-kit generate"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "drizzle-kit": "^0.20.14"
+    "drizzle-kit": "^0.21.2",
+    "pg": "^8.11.5"
   },
   "dependencies": {
     "postgres": "^3.4.4"

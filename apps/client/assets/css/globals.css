@@ -1,9 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @font-face {
   font-family: "CustomFont";
-  src: url("../font/Nunito-Bold.ttf") format("truetype");
+  src: url("../font/Nunito/Nunito-Bold.ttf") format("truetype");
   /* 添加其他字体格式（可选） */
 }
 
@@ -99,22 +100,26 @@ body {
 ::view-transition-old(root) {
   z-index: 1;
 }
+
 ::view-transition-new(root) {
   z-index: 9999;
 }
+
 .dark::view-transition-old(root) {
   z-index: 9999;
 }
+
 .dark::view-transition-new(root) {
   z-index: 1;
 }
 
 ::-webkit-scrollbar {
   width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #e9e2e243;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -124,4 +129,9 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #cecacac7;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #3b3c46;
+  border-radius: 7px;
 }
