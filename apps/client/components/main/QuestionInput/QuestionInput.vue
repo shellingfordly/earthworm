@@ -241,6 +241,10 @@ function handleKeydown(e: KeyboardEvent) {
       rightCallback: handleAnswerRight,
       errorCallback: handleAnswerError,
     },
+    useAutoFixPostion: {
+      inputValue,
+      setInputCursorPosition,
+    },
   });
 }
 

@@ -1,3 +1,5 @@
+import type { Ref } from "vue";
+
 import { nextTick, reactive, ref, watchEffect } from "vue";
 
 interface Word {
@@ -292,6 +294,10 @@ export function useInput({
       rightCallback?: () => void;
       errorCallback?: () => void;
     };
+    useAutoFixPostion?: {
+      inputValue: Ref<string>;
+      setInputCursorPosition?: (position: number) => void;
+    };
   }
 
   function handleKeyboardInput(e: KeyboardEvent, options?: KeyboardInputOptions) {
@@ -318,6 +324,46 @@ export function useInput({
       fixFirstIncorrectWord();
       inputChangedCallback?.(e);
       return;
+    }
+
+    // auto position, 这只是一个测试版本
+    if (e.code == "PageDown") {
+      const sourceWordsText = source().split(" ");
+      function r(i: number, j: number) {
+        const w = userInputWords[i]?.userInput;
+        const t = sourceWordsText[j];
+        return w.toLocaleLowerCase() == t.toLocaleLowerCase();
+      }
+
+      let index = -1;
+      let count = 0;
+      let i = 0;
+      let j = 0;
+      while (i < userInputWords.length && j < sourceWordsText.length) {
+        if (r(i, j)) {
+          i++;
+          j++;
+          if (index > -1) {
+            count++;
+            if (count >= 3) {
+              for (let k = userInputWords.length - 1; k > index; k--) {
+                userInputWords[k].start = userInputWords[k - 1].start + 1;
+                userInputWords[k].end = userInputWords[k - 1].end + 1;
+                userInputWords[k].userInput = userInputWords[k - 1].userInput;
+                userInputWords[k].isActive = false;
+              }
+              userInputWords[index].userInput = "";
+              userInputWords[index].isActive = true;
+              userInputWords[index].end = userInputWords[index].start;
+              options?.useAutoFixPostion?.setInputCursorPosition?.(userInputWords[index].start);
+              break;
+            }
+          }
+        } else {
+          index = i;
+          j++;
+        }
+      }
     }
 
     // Fix_Input 下启用空格提交 且 在最后一个错误单词位置
